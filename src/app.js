@@ -37,6 +37,10 @@ app.post(
   }
 );
 
+//static
+app.use('/static', express.static(__dirname + '/public'));
+
+//error handler
 app.use(error404);
 
 
