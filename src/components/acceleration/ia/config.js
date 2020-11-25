@@ -15,5 +15,7 @@ module.exports = {
     },
   },
   URI: "",
-  nn: [3, 6, 12, 6, 3, 1],
+  NN: [3, 6, 12, 6, 3, 1],
+  dir_model: "/src/components/accelerometer/tfjs-model",
+  path_model: "file://./src/components/accelerometer/tfjs-model",
 };

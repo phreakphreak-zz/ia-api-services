@@ -1,21 +1,21 @@
 const tf = require("@tensorflow/tfjs");
 require("@tensorflow/tfjs-node");
 const axios = require("axios").default;
-
-
+const fs = require("fs");
+const path = require("path");
 /**
  *
  * @returns {*} model
  */
-async function createModel(nn) {
+async function createModel(NN) {
   const model = tf.sequential();
 
   //1st layer 6
   model.add(
     tf.layers.dense({
-      units: nn[1],
+      units: NN[1],
       activation: "relu",
-      inputShape: [nn[0]],
+      inputShape: [NN[0]],
       useBias: true,
     })
   );
@@ -23,9 +23,9 @@ async function createModel(nn) {
   //2nd layer 12
   model.add(
     tf.layers.dense({
-      units: nn[2],
+      units: NN[2],
       activation: "relu",
-      inputShape: [nn[1]],
+      inputShape: [NN[1]],
       useBias: true,
     })
   );
@@ -33,9 +33,9 @@ async function createModel(nn) {
   //3rd layer 6
   model.add(
     tf.layers.dense({
-      units: nn[3],
+      units: NN[3],
       activation: "relu",
-      inputShape: [nn[2]],
+      inputShape: [NN[2]],
       useBias: true,
     })
   );
@@ -43,9 +43,9 @@ async function createModel(nn) {
   //4th layer 3
   model.add(
     tf.layers.dense({
-      units: nn[4],
+      units: NN[4],
       activation: "relu",
-      inputShape: [nn[3]],
+      inputShape: [NN[3]],
       useBias: true,
     })
   );
@@ -53,7 +53,7 @@ async function createModel(nn) {
   //5th layer 1 OUTPUT
   model.add(
     tf.layers.dense({
-      units: nn[5],
+      units: NN[5],
       activation: "sigmoid",
       useBias: true,
     })
@@ -84,7 +84,17 @@ async function getData(URI) {
 
 /**
  *
- * @param {*} data
+ * @param {*}
+ * @returns {Object}
+ * {
+      inputs: normalizedInputs,
+      labels: normalizedLabels,
+      // Return the min/max bounds so we can use them later.
+      inputMax,
+      inputMin,
+      labelMax,
+      labelMin,
+    };
  */
 async function convertTensor(data) {
   return tf.tidy(() => {
@@ -129,16 +139,75 @@ async function convertTensor(data) {
  * @param {*} inputs
  * @param {*} labels
  */
-async function trainModel(model, inputs, labels,compiler, modelFitArgs) {
+async function trainModel(model, inputs, labels, compiler, modelFitArgs) {
   model.compile(compiler);
   return await model.fit(inputs, labels, { modelFitArgs });
 }
 
+async function saveModel(model) {}
 
+
+async function generateModel(model, path_model) {
+  try {
+    await model.save(path_model);
+    return { code: 200, message: "model is generated" };
+  } catch (error) {
+    console.error(error);
+    return { code: 500, message: "model is not generated" };
+  }
+}
+
+//promise
+function deleteModel(dir_model) {
+  return new Promise((resolve, reject) => {
+    const dir = path.join(process.cwd(), dir_model);
+    fs.stat(dir, function (err) {
+      if (!err) {
+        console.log("file or directory exists");
+        fs.rmdir(dir, { recursive: true }, (err) => {
+          if (err) {
+            reject({ code: 500, message: err.message });
+          }
+          resolve({
+            code: 200,
+            message: "file or directory deleted successfully",
+          });
+        });
+      } else if (err.code === "ENOENT") {
+        console.log("file or directory does not exist");
+        reject({ code: 404, message: "file or directory does not exist" });
+      }
+    });
+  });
+}
+
+async function loadModel(path_model) {
+  //'file://path/to/my-model/model.json'
+  try {
+    const model = await tf.loadLayersModel(path_model);
+    return {
+      code: 200,
+      message: "model is loaded",
+      model: model,
+    };
+  } catch (error) {
+    console.error(error);
+    return {
+      code: 400,
+      message: "model is not loaded",
+      model: null,
+    };
+  }
+}
+
+async function getModel() {}
 
 module.exports = {
   convertTensor,
   getData,
   createModel,
-  trainModel
+  trainModel,
+  generateModel,
+  deleteModel,
+  loadModel,
 };

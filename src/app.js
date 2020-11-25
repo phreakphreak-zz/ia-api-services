@@ -13,11 +13,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(morgan("dev"));
 
 //routes
-app.get("/", (req, res, next) => {
-  require("./model");
 
-  res.json("ok");
-});
 
 app.post(
   "/upload",
@@ -36,6 +32,8 @@ app.post(
     res.json("ok");
   }
 );
+
+app.use("/api",require("./routes/index"));
 
 //static
 app.use('/static', express.static(__dirname + '/public'));

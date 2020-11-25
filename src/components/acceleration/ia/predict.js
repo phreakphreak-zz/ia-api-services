@@ -39,3 +39,4 @@ function predictModel(model, inputData, normalizationData) {
     }
   );
 }
+
